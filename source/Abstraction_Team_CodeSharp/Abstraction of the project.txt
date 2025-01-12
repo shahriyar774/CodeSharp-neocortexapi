@@ -1,0 +1,14 @@
+04 Implement the visualization of permanence value
+
+The Spatial Pooler encodes the input into an SDR. The latest version of the neocortexapi provides a method, Reconstruct(), which performs the inverse function of the Spatial Pooler. It reconstructs the input from the SDR. The result of this method contains the sum of permanence of all mini-columns connected to input bits. 
+Your task is to create an experiment that illustrates the reconstruction.
+This project aims to visualize the reconstructed values for two types of data: int[] and images. In both cases, the array of integers contains a sequence of 0 and 1 values. The visualization must be configured to understand the dimensions of the array. The flattened array is always used as input but can represent multidimensional arrays. With this configuration, the visualization will create a 1D, 2D, or even 3D heatmap.
+Example
+A single-dimensional array of permanence might be represented as follows. Red means permanence 1. Blue means permanence 0.
+ 
+
+ 
+The same principal should be used for 2D or 3D.
+The existing method DrawHeatmaps in the NeocortexUtils class can be improved (if required) to support this task.
+The neocortexapi provides a method DrawHeatmaps, which draws the heatmap of a 2D array.
+Reference: The ImageSimilarityExperiment unit test might give you an idea how to work with heatmap representations in neocortexapi. Please note, your task in this project is also to document the code in ImageSimilarityExperiment and to replace old configuration with HtmConfig.
