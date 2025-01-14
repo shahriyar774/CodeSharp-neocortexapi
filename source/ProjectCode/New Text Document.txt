@@ -1,4 +1,4 @@
-﻿using NeoCortexApi;
+using NeoCortexApi;
 using NeoCortexApi.Encoders;
 using System;
 using System.Collections.Generic;
