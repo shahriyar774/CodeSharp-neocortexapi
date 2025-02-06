@@ -35,12 +35,12 @@ namespace NeoCortexApiSample
                 PotentialRadius = (int)(0.15 * inputBits),
                 StimulusThreshold = 5.0,
                 
-                MaxBoost = 10.0,
+                MaxBoost = 7.0,
                 DutyCyclePeriod = 25,
                 MinPctOverlapDutyCycles = 0.75,
                 MaxSynapsesPerSegment = (int)(0.02 * numColumns),
 
-                ActivationThreshold = 15,
+                ActivationThreshold = 20,
                 ConnectedPermanence = 0.5,
 
                 // Learning is slower than forgetting in this case.
