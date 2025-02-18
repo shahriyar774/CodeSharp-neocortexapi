@@ -50,7 +50,7 @@ namespace NeoCortexApiSample
                 
                 MaxSynapsesPerSegment = (int)(0.01 * numColumns),
                 Random = new ThreadSafeRandom(42),
-                StimulusThreshold=10,
+                StimulusThreshold=12,
             };
 
             double max = 100;
