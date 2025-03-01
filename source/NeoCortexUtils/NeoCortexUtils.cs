@@ -205,6 +205,15 @@ namespace NeoCortex
             myBitmap.Save(filePath, ImageFormat.Png);
         }
 
+        ///Implemented Permanence Bitmap with text values for visualization
+        public static void DrawPermanenceBitmapWithText(List<List<double>> heatmapData, List<string> inputNames, string filePath, int bmpWidth = 2048, int bmpHeight = 2048, int gridSize = 64)
+        {
+            // Ensure bitmap width and height are valid
+            if (bmpWidth <= 0 || bmpHeight <= 0 || gridSize <= 0)
+            {
+                throw new ArgumentException("Bitmap dimensions and grid size must be greater than zero.");
+            }
+
         /// <summary>
         /// Combines heatmap and normalized permanence representations into a single image with title.
         /// This Drwaitng Function is used to Visulalization of the Permanence Values.
