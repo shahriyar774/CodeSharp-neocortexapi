@@ -222,6 +222,18 @@ namespace NeoCortex
                 // Set font and brush for drawing the text
                 using (Font font = new Font("Arial", 8, FontStyle.Bold))
                 using (Brush textBrush = Brushes.Black)
+                {
+                    // Calculate scale factor to fit data in bitmap
+                    int gridWidth = Math.Max(1, bmpWidth / gridSize);
+                    int gridHeight = Math.Max(1, bmpHeight / gridSize);
+
+                    // Ensure valid data before proceeding
+                    if (heatmapData == null || heatmapData.Count == 0 || heatmapData[0].Count == 0)
+                    {
+                        throw new ArgumentException("Heatmap data cannot be null or empty.");
+                    }
+
+                }
             }
 
 
