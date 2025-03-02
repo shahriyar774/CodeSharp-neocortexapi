@@ -213,22 +213,33 @@ namespace NeoCortex
             {
                 throw new ArgumentException("Bitmap dimensions and grid size must be greater than zero.");
             }
+            // Create the Bitmap object with the specified size
+            using (Bitmap myBitmap = new Bitmap(bmpWidth, bmpHeight))
+            using (Graphics graphics = Graphics.FromImage(myBitmap))
+            {
+                graphics.Clear(Color.White); // Set background to white
 
-        /// <summary>
-        /// Combines heatmap and normalized permanence representations into a single image with title.
-        /// This Drwaitng Function is used to Visulalization of the Permanence Values.
-        /// </summary>
-        /// <param name="heatmapData">List of arrays representing the heatmap data.</param>
-        /// <param name="normalizedData">List of arrays representing normalized data below the heatmap.</param>
-        /// <param name="encodedData">List of arrays of original Encoded data encoded by the scaler encoder.</param>
-        /// <param name="filePath">Output image path for saving the combined image.</param>
-        /// <param name="bmpWidth">Width of the heatmap bitmap (default is 1024).</param>
-        /// <param name="bmpHeight">Height of the heatmap bitmap (default is 1024).</param>
-        /// <param name="redStart">Threshold for values above which pixels are red (default is 200).</param>
-        /// <param name="yellowMiddle">Threshold for values between which pixels are yellow (default is 127).</param>
-        /// <param name="greenStart">Threshold for values below which pixels are green (default is 20).</param>
-        /// <param name="enlargementFactor">Factor by which the image is enlarged for better visualization (default is 4).</param>
-        public static void Draw1dHeatmap(List<double[]> heatmapData, List<int[]> normalizedData, List<int[]> encodedData, String filePath,
+                // Set font and brush for drawing the text
+                using (Font font = new Font("Arial", 8, FontStyle.Bold))
+                using (Brush textBrush = Brushes.Black)
+            }
+
+
+                    /// <summary>
+                    /// Combines heatmap and normalized permanence representations into a single image with title.
+                    /// This Drwaitng Function is used to Visulalization of the Permanence Values.
+                    /// </summary>
+                    /// <param name="heatmapData">List of arrays representing the heatmap data.</param>
+                    /// <param name="normalizedData">List of arrays representing normalized data below the heatmap.</param>
+                    /// <param name="encodedData">List of arrays of original Encoded data encoded by the scaler encoder.</param>
+                    /// <param name="filePath">Output image path for saving the combined image.</param>
+                    /// <param name="bmpWidth">Width of the heatmap bitmap (default is 1024).</param>
+                    /// <param name="bmpHeight">Height of the heatmap bitmap (default is 1024).</param>
+                    /// <param name="redStart">Threshold for values above which pixels are red (default is 200).</param>
+                    /// <param name="yellowMiddle">Threshold for values between which pixels are yellow (default is 127).</param>
+                    /// <param name="greenStart">Threshold for values below which pixels are green (default is 20).</param>
+                    /// <param name="enlargementFactor">Factor by which the image is enlarged for better visualization (default is 4).</param>
+                    public static void Draw1dHeatmap(List<double[]> heatmapData, List<int[]> normalizedData, List<int[]> encodedData, String filePath,
         int bmpWidth = 1024,
         int bmpHeight = 1024,
         decimal redStart = 200, decimal yellowMiddle = 127, decimal greenStart = 20,
