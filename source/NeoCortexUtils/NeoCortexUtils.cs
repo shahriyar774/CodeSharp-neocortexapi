@@ -232,9 +232,20 @@ namespace NeoCortex
                     {
                         throw new ArgumentException("Heatmap data cannot be null or empty.");
                     }
+                    // Ensure inputNames match the data size
+                    if (inputNames == null || inputNames.Count < heatmapData.Count)
+                    {
+                        throw new ArgumentException("Input names must match the number of data rows.");
+                    }
 
+                    // Additional drawing logic should be implemented here...
+
+                    // Save the bitmap to the specified file path
+                    myBitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
                 }
             }
+        }
+
 
 
                     /// <summary>
