@@ -213,6 +213,16 @@ namespace NeoCortex
             {
                 throw new ArgumentException("Bitmap dimensions and grid size must be greater than zero.");
             }
+            if (heatmapData == null || heatmapData.Count == 0)
+            {
+                throw new ArgumentException("Heatmap data cannot be null or empty.");
+            }
+
+            if (inputNames == null || inputNames.Count < heatmapData.Count)
+            {
+                    throw new ArgumentException("Input names must match the number of data rows.");
+            }
+
             // Create the Bitmap object with the specified size
             using (Bitmap myBitmap = new Bitmap(bmpWidth, bmpHeight))
             using (Graphics graphics = Graphics.FromImage(myBitmap))
@@ -227,15 +237,15 @@ namespace NeoCortex
                     int gridWidth = Math.Max(1, bmpWidth / gridSize);
                     int gridHeight = Math.Max(1, bmpHeight / gridSize);
 
-                    // Ensure valid data before proceeding
-                    if (heatmapData == null || heatmapData.Count == 0 || heatmapData[0].Count == 0)
+                    for (int row = 0; row < heatmapData.Count; row++)
                     {
-                        throw new ArgumentException("Heatmap data cannot be null or empty.");
-                    }
-                    // Ensure inputNames match the data size
-                    if (inputNames == null || inputNames.Count < heatmapData.Count)
-                    {
-                        throw new ArgumentException("Input names must match the number of data rows.");
+                        var permanenceValues = heatmapData[row];
+
+                        if (permanenceValues.Count == 0)
+                            continue; // Skip empty rows
+
+                        double maxPermanence = permanenceValues.Max();
+                        if (maxPermanence == 0) maxPermanence = 1; // Prevent division by zero
                     }
 
                     // Additional drawing logic should be implemented here...
