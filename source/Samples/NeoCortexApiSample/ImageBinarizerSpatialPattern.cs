@@ -76,7 +76,7 @@ namespace NeoCortexApiSample
             //Accessing the Image Folder form the Cureent Directory Foldfer
             var trainingImages = Directory.GetFiles(trainingFolder, $"{inputPrefix}*.png");
             //Image Size
-            int imageSize = 36;
+            int imageSize = 28;
             //Folder Name in the Directorty 
             string testName = "test_image";
 
@@ -104,7 +104,7 @@ namespace NeoCortexApiSample
             sp.Init(mem, new DistributedMemory() { ColumnDictionary = new InMemoryDistributedDictionary<int, NeoCortexApi.Entities.Column>(1) });
 
             //Image Size
-            int imgSize = 36;
+            int imgSize = 28;
             int[] activeArray = new int[numColumns];
 
             int numStableCycles = 0;
@@ -117,7 +117,7 @@ namespace NeoCortexApiSample
                 foreach (var Image in trainingImages)
                 {
                     //Binarizing the Images before taking Inputs for the Sp
-                    string inputBinaryImageFile = NeoCortexUtils.BinarizeImage($"{Image}", imgSize, testName);
+                    string inputBinaryImageFile = NeoCortexUtils.BinarizeImage($"{Image}", 28, testName);
 
                     // Read Binarized and Encoded input csv file into array
                     int[] inputVector = NeoCortexUtils.ReadCsvIntegers(inputBinaryImageFile).ToArray();
