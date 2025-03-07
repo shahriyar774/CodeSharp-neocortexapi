@@ -246,6 +246,16 @@ namespace NeoCortex
 
                         double maxPermanence = permanenceValues.Max();
                         if (maxPermanence == 0) maxPermanence = 1; // Prevent division by zero
+                        for (int col = 0; col < permanenceValues.Count; col++)
+                        {
+                            double permanence = permanenceValues[col];
+
+                            // Calculate color intensity based on permanence value
+                            int red = (int)(255 * (permanence / maxPermanence));
+                            int blue = (int)(255 * (1 - permanence / maxPermanence));
+                            Color cellColor = Color.FromArgb(red, 0, blue);
+
+                        }
                     }
 
                     // Additional drawing logic should be implemented here...
