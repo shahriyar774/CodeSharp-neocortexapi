@@ -63,6 +63,8 @@ namespace NeoCortexApiSample
                 { "Name", "scalar"},
                 { "ClipInput", false},
                 { "MaxVal", max}
+                { "NewSetting", 100 },  // Added new configuration entry
+                { "AdditionalSetting", true }  // Added an additional configuration entry
             };
 
             EncoderBase encoder = new ScalarEncoder(settings);

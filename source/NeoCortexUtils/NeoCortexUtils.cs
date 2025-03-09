@@ -255,6 +255,17 @@ namespace NeoCortex
                             int blue = (int)(255 * (1 - permanence / maxPermanence));
                             Color cellColor = Color.FromArgb(red, 0, blue);
 
+                            // Compute 2D position
+                            int x = col % gridSize;
+                            int y = col / gridSize;
+
+                            // Fill rectangle instead of setting individual pixels for performance improvement
+                            using (Brush cellBrush = new SolidBrush(cellColor))
+                            {
+                                graphics.FillRectangle(cellBrush, x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                            }
+
+
                         }
                     }
 
