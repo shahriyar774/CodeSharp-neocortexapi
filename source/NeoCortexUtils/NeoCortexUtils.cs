@@ -142,7 +142,83 @@ namespace NeoCortex
             DrawBitmaps(twoDimArrays, filePath, Color.DarkGray, Color.Yellow, bmpWidth, bmpHeight);
         }
 
+        ///Implemented Permanence Bitmap with text values for visualization
+        public static void DrawPermanenceBitmapWithText(List<List<double>> heatmapData, List<string> inputNames, string filePath, int bmpWidth = 2048, int bmpHeight = 2048, int gridSize = 64)
+        {
+            // Ensure bitmap width and height are valid
+            if (bmpWidth <= 0 || bmpHeight <= 0 || gridSize <= 0)
+            {
+                throw new ArgumentException("Bitmap dimensions and grid size must be greater than zero.");
+            }
+            if (heatmapData == null || heatmapData.Count == 0)
+            {
+                throw new ArgumentException("Heatmap data cannot be null or empty.");
+            }
 
+            if (inputNames == null || inputNames.Count < heatmapData.Count)
+            {
+                throw new ArgumentException("Input names must match the number of data rows.");
+            }
+
+            // Create the Bitmap object with the specified size
+            using (Bitmap myBitmap = new Bitmap(bmpWidth, bmpHeight))
+            using (Graphics graphics = Graphics.FromImage(myBitmap))
+            {
+                graphics.Clear(Color.White); // Set background to white
+
+                // Set font and brush for drawing the text
+                using (Font font = new Font("Arial", 8, FontStyle.Bold))
+                using (Brush textBrush = Brushes.Black)
+                {
+                    // Calculate scale factor to fit data in bitmap
+                    int gridWidth = Math.Max(1, bmpWidth / gridSize);
+                    int gridHeight = Math.Max(1, bmpHeight / gridSize);
+
+                    for (int row = 0; row < heatmapData.Count; row++)
+                    {
+                        var permanenceValues = heatmapData[row];
+
+                        if (permanenceValues.Count == 0)
+                            continue; // Skip empty rows
+
+                        double maxPermanence = permanenceValues.Max();
+                        if (maxPermanence == 0) maxPermanence = 1; // Prevent division by zero
+                        for (int col = 0; col < permanenceValues.Count; col++)
+                        {
+                            double permanence = permanenceValues[col];
+
+                            // Calculate color intensity based on permanence value
+                            int red = (int)(255 * (permanence / maxPermanence));
+                            int blue = (int)(255 * (1 - permanence / maxPermanence));
+                            Color cellColor = Color.FromArgb(red, 0, blue);
+
+                            // Compute 2D position
+                            int x = col % gridSize;
+                            int y = col / gridSize;
+
+                        
+
+                            // Fill rectangle instead of setting individual pixels for performance improvement
+                            using (Brush cellBrush = new SolidBrush(cellColor))
+                            {
+                                graphics.FillRectangle(textBrush, x * gridWidth, y * gridHeight, gridWidth, gridHeight);
+                            }
+                            // Draw permanence value with input name
+                            string label = $"{inputNames[row]}: {permanence:F2}";
+                            graphics.DrawString(label, font, textBrush, x * gridWidth + 2, y * gridHeight + 2);
+                        }
+
+
+                    }
+                }
+
+                // Additional drawing logic should be implemented here...
+
+                // Save the bitmap to the specified file path
+                myBitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+
+            }
+        }
 
         /// <summary>
         /// Drawas bitmaps from list of arrays.
@@ -208,95 +284,235 @@ namespace NeoCortex
             myBitmap.Save(filePath, ImageFormat.Png);
         }
 
-        ///Implemented Permanence Bitmap with text values for visualization
-        public static void DrawPermanenceBitmapWithText(List<List<double>> heatmapData, List<string> inputNames, string filePath, int bmpWidth = 2048, int bmpHeight = 2048, int gridSize = 64)
+
+        /// Generates a heatmap visualization from permanence data with overlaid text labels
+        public static void DrawPermanenceBitmapWithText2(List<List<double>> heatmapData, List<string> inputNames, string filePath,
+                                                 int bmpWidth = 2048, int bmpHeight = 2048, int gridSize = 64,
+                                                 int enlargementFactor = 2)
         {
-            // Ensure bitmap width and height are valid
-            if (bmpWidth <= 0 || bmpHeight <= 0 || gridSize <= 0)
-            {
-                throw new ArgumentException("Bitmap dimensions and grid size must be greater than zero.");
-            }
+            // Adjust the bitmap size based on the enlargement factor
+            bmpWidth *= enlargementFactor;
+            bmpHeight *= enlargementFactor;
+
+            // Ensure valid input data
             if (heatmapData == null || heatmapData.Count == 0)
-            {
                 throw new ArgumentException("Heatmap data cannot be null or empty.");
-            }
 
             if (inputNames == null || inputNames.Count < heatmapData.Count)
-            {
-                    throw new ArgumentException("Input names must match the number of data rows.");
-            }
+                throw new ArgumentException("Input names count must match the number of data rows.");
 
-            // Create the Bitmap object with the specified size
             using (Bitmap myBitmap = new Bitmap(bmpWidth, bmpHeight))
             using (Graphics graphics = Graphics.FromImage(myBitmap))
             {
                 graphics.Clear(Color.White); // Set background to white
 
-                // Set font and brush for drawing the text
-                using (Font font = new Font("Arial", 8, FontStyle.Bold))
+                // Set font for text display
+                using (Font font = new Font("Arial", 6 * enlargementFactor, FontStyle.Bold))
                 using (Brush textBrush = Brushes.Black)
                 {
-                    // Calculate scale factor to fit data in bitmap
-                    int gridWidth = Math.Max(1, bmpWidth / gridSize);
-                    int gridHeight = Math.Max(1, bmpHeight / gridSize);
+                    int cellWidth = Math.Max(1, bmpWidth / gridSize);
+                    int cellHeight = Math.Max(1, bmpHeight / gridSize);
 
+                    // Iterate over the heatmap data
                     for (int row = 0; row < heatmapData.Count; row++)
                     {
                         var permanenceValues = heatmapData[row];
 
                         if (permanenceValues.Count == 0)
-                            continue; // Skip empty rows
+                            continue;
 
                         double maxPermanence = permanenceValues.Max();
                         if (maxPermanence == 0) maxPermanence = 1; // Prevent division by zero
+
                         for (int col = 0; col < permanenceValues.Count; col++)
                         {
                             double permanence = permanenceValues[col];
 
-                            // Calculate color intensity based on permanence value
+                            // Compute color intensity based on permanence value
                             int red = (int)(255 * (permanence / maxPermanence));
                             int blue = (int)(255 * (1 - permanence / maxPermanence));
                             Color cellColor = Color.FromArgb(red, 0, blue);
 
-                            // Compute 2D position
+                            // Compute 2D grid position
                             int x = col % gridSize;
                             int y = col / gridSize;
 
-                            // Fill rectangle instead of setting individual pixels for performance improvement
+                          
+
+                            // Fill the grid cell with the computed color
                             using (Brush cellBrush = new SolidBrush(cellColor))
                             {
-                                graphics.FillRectangle(textBrush, x * gridWidth, y * gridHeight, gridWidth, gridHeight);
+                                graphics.FillRectangle(cellBrush, x * cellWidth, y * cellHeight, cellWidth, cellHeight);
                             }
 
-
+                            // Draw text label for permanence value and input name
+                            string label = $"{inputNames[row]}: {permanence:F2}"; // Format to 2 decimal places
+                            graphics.DrawString(label, font, textBrush, x * cellWidth + 5, y * cellHeight + 5);
                         }
                     }
-
-                    // Additional drawing logic should be implemented here...
-
-                    // Save the bitmap to the specified file path
-                    myBitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
                 }
+
+                // Save the enlarged bitmap to a file
+                myBitmap.Save(filePath, ImageFormat.Png);
+            }
+
+            Console.WriteLine($"Permanence heatmap with enlargement factor {enlargementFactor} saved to {filePath}");
+        }
+
+        public static void DrawPermanenceBitmap(List<List<double>> heatmapData, string filePath,
+                                        int bmpWidth = 2048, int bmpHeight = 2048,
+                                        int gridSize = 64, int enlargementFactor = 1)
+        {
+            // Adjust bitmap size based on enlargement factor
+            bmpWidth *= enlargementFactor;
+            bmpHeight *= enlargementFactor;
+
+            // Ensure heatmap data is valid before processing
+            if (heatmapData == null || heatmapData.Count == 0)
+            {
+                throw new ArgumentException("Heatmap data is empty or null.");
+            }
+
+            // Initialize a Bitmap object with the specified size
+            using (Bitmap myBitmap = new Bitmap(bmpWidth, bmpHeight))
+            using (Graphics graphics = Graphics.FromImage(myBitmap))
+            {
+                graphics.Clear(Color.White); // Set background to white
+
+                // Calculate scale factor for fitting data into the enlarged bitmap
+                int cellWidth = bmpWidth / gridSize;
+                int cellHeight = bmpHeight / gridSize;
+
+                for (int idx = 0; idx < heatmapData.Count; idx++)
+                {
+                    var permanenceValues = heatmapData[idx];
+
+                    if (permanenceValues == null || permanenceValues.Count == 0)
+                    {
+                        Console.WriteLine($"Warning: Empty permanence values at index {idx}");
+                        continue;
+                    }
+
+                    // Get maximum permanence value for normalization
+                    double maxPermanence = permanenceValues.Max();
+                    maxPermanence = maxPermanence == 0 ? 1 : maxPermanence; // Prevent division by zero
+
+                    for (int i = 0; i < permanenceValues.Count; i++)
+                    {
+                        double permanence = permanenceValues[i];
+
+                        // Normalize permanence value between 0 and 1
+                        double normalizedPermanence = permanence / maxPermanence;
+
+                        // Calculate color intensity based on normalized permanence
+                        int red = (int)(255 * normalizedPermanence);  // Higher permanence → More red
+                        int blue = (int)(255 * (1 - normalizedPermanence)); // Lower permanence → More blue
+                        int green = 0; // Green remains constant
+
+                        // Set color based on permanence value
+                        Color pixelColor = Color.FromArgb(red, green, blue);
+                        using (Brush brush = new SolidBrush(pixelColor))
+                        {
+                            // Convert 1D index to 2D grid coordinates
+                            int x = (i % gridSize) * cellWidth;
+                            int y = (i / gridSize) * cellHeight;
+
+                            // Draw rectangle instead of individual pixels for better performance
+                            graphics.FillRectangle(brush, x, y, cellWidth, cellHeight);
+                        }
+                    }
+                }
+
+                // Save the bitmap to a file
+                myBitmap.Save(filePath, ImageFormat.Png);
+                Console.WriteLine($"Permanence heatmap saved to {filePath}");
+            }
+        }
+
+    
+        /// Generates a permanence heatmap with text values overlaid on the grid.
+       public static void DrawPermanenceBitmapWithText(List<List<double>> heatmapData, List<string> inputNames,
+                                                        string filePath, int bmpWidth = 2048, int bmpHeight = 2048,
+                                                        int gridSize = 64)
+        {
+            // Validate input data
+            if (heatmapData == null || heatmapData.Count == 0 || inputNames == null || inputNames.Count < heatmapData.Count)
+            {
+                throw new ArgumentException("Invalid heatmap data or input names.");
+            }
+
+            // Initialize a Bitmap object with the specified size
+            using (Bitmap myBitmap = new Bitmap(bmpWidth, bmpHeight))
+            using (Graphics graphics = Graphics.FromImage(myBitmap))
+            {
+                graphics.Clear(Color.White); // Set background to white
+
+                // Define font settings for text overlay
+                using (Font font = new Font("Arial", Math.Max(6, bmpWidth / (gridSize * 20)), FontStyle.Bold))
+                using (Brush textBrush = Brushes.Black)
+                {
+                    // Calculate scale factors for grid cell size
+                    int cellWidth = bmpWidth / gridSize;
+                    int cellHeight = bmpHeight / gridSize;
+
+                    for (int idx = 0; idx < heatmapData.Count; idx++)
+                    {
+                        var permanenceValues = heatmapData[idx];
+                        if (permanenceValues == null || permanenceValues.Count == 0) continue;
+
+                        // Normalize permanence values to prevent division by zero
+                        double maxPermanence = permanenceValues.Max();
+                        maxPermanence = maxPermanence == 0 ? 1 : maxPermanence;
+
+                        for (int i = 0; i < permanenceValues.Count; i++)
+                        {
+                            double permanence = permanenceValues[i];
+                            double normalizedPermanence = permanence / maxPermanence;
+
+                            // Compute RGB color based on permanence value
+                            int red = (int)(255 * normalizedPermanence);
+                            int blue = (int)(255 * (1 - normalizedPermanence));
+                            Color pixelColor = Color.FromArgb(red, 0, blue);
+
+                            // Determine grid cell position
+                            int x = (i % gridSize) * cellWidth;
+                            int y = (i / gridSize) * cellHeight;
+
+                            // Draw filled rectangle for each grid cell
+                            using (Brush cellBrush = new SolidBrush(pixelColor))
+                            {
+                                graphics.FillRectangle(cellBrush, x, y, cellWidth, cellHeight);
+                            }
+
+                            // Draw text overlay with input name and permanence value
+                            string label = $"{inputNames[idx]}: {permanence:F2}";
+                            graphics.DrawString(label, font, textBrush, x + 2, y + 2);
+                        }
+                    }
+                }
+
+                // Save the heatmap image to file
+                myBitmap.Save(filePath, ImageFormat.Png);
+                Console.WriteLine($"Permanence heatmap with text saved to {filePath}");
             }
         }
 
 
-
-                    /// <summary>
-                    /// Combines heatmap and normalized permanence representations into a single image with title.
-                    /// This Drwaitng Function is used to Visulalization of the Permanence Values.
-                    /// </summary>
-                    /// <param name="heatmapData">List of arrays representing the heatmap data.</param>
-                    /// <param name="normalizedData">List of arrays representing normalized data below the heatmap.</param>
-                    /// <param name="encodedData">List of arrays of original Encoded data encoded by the scaler encoder.</param>
-                    /// <param name="filePath">Output image path for saving the combined image.</param>
-                    /// <param name="bmpWidth">Width of the heatmap bitmap (default is 1024).</param>
-                    /// <param name="bmpHeight">Height of the heatmap bitmap (default is 1024).</param>
-                    /// <param name="redStart">Threshold for values above which pixels are red (default is 200).</param>
-                    /// <param name="yellowMiddle">Threshold for values between which pixels are yellow (default is 127).</param>
-                    /// <param name="greenStart">Threshold for values below which pixels are green (default is 20).</param>
-                    /// <param name="enlargementFactor">Factor by which the image is enlarged for better visualization (default is 4).</param>
-                    public static void Draw1dHeatmap(List<double[]> heatmapData, List<int[]> normalizedData, List<int[]> encodedData, String filePath,
+        /// <summary>
+        /// Combines heatmap and normalized permanence representations into a single image with title.
+        /// This Drwaitng Function is used to Visulalization of the Permanence Values.
+        /// </summary>
+        /// <param name="heatmapData">List of arrays representing the heatmap data.</param>
+        /// <param name="normalizedData">List of arrays representing normalized data below the heatmap.</param>
+        /// <param name="encodedData">List of arrays of original Encoded data encoded by the scaler encoder.</param>
+        /// <param name="filePath">Output image path for saving the combined image.</param>
+        /// <param name="bmpWidth">Width of the heatmap bitmap (default is 1024).</param>
+        /// <param name="bmpHeight">Height of the heatmap bitmap (default is 1024).</param>
+        /// <param name="redStart">Threshold for values above which pixels are red (default is 200).</param>
+        /// <param name="yellowMiddle">Threshold for values between which pixels are yellow (default is 127).</param>
+        /// <param name="greenStart">Threshold for values below which pixels are green (default is 20).</param>
+        /// <param name="enlargementFactor">Factor by which the image is enlarged for better visualization (default is 4).</param>
+        public static void Draw1dHeatmap(List<double[]> heatmapData, List<int[]> normalizedData, List<int[]> encodedData, String filePath,
         int bmpWidth = 1024,
         int bmpHeight = 1024,
         decimal redStart = 200, decimal yellowMiddle = 127, decimal greenStart = 20,
@@ -982,4 +1198,7 @@ namespace NeoCortex
             return exponentials.Select(x => x / sum).ToArray();
         }
     }
+
 }
+
+
