@@ -21,6 +21,7 @@ namespace NeoCortexApiSample
         public void Run()
         {
             Console.WriteLine($"Hello NeocortexApi! Experiment {nameof(ImageBinarizerSpatialPattern)}");
+            
 
             double minOctOverlapCycles = 1.0;
             double maxBoost = 5.0;
@@ -170,6 +171,11 @@ namespace NeoCortexApiSample
             List<List<double>> heatmapData = new List<List<double>>();
             // Initialize a list to get normalized permanence values.
             List<int[]> BinarizedencodedInputs = new List<int[]>();
+            // Extracting only the file names (without extensions) from the training images list
+            List<string> imageFileNamesWithoutExtension = trainingImages
+                .Select(imagePath => Path.GetFileNameWithoutExtension(imagePath))
+                .ToList();
+
             // List to store normalized permanence values
             List<int[]> normalizedPermanence = new List<int[]>();
             // List to store similarity values
@@ -243,6 +249,28 @@ namespace NeoCortexApiSample
 
                 //Collecting Similarity Data for visualizing
                 similarityList.Add(similarityArray);
+
+                // Define the directory path where the permanence heatmaps will be saved
+                string permanenceHeatmapDirectory = Path.Combine(Environment.CurrentDirectory, "PermanenceHeatmaps");
+
+                // Check if the directory exists; if not, create it
+                if (!Directory.Exists(permanenceHeatmapDirectory))
+                {
+                    Directory.CreateDirectory(permanenceHeatmapDirectory);
+                }
+
+                // Generate a unique file path for saving the heatmap using the image name
+                string permanenceHeatmapFilePath = Path.Combine(
+                    permanenceHeatmapDirectory,
+                    $"{Path.GetFileNameWithoutExtension(Image)}_permanence_heatmap.png"
+                );
+
+                // Generate and save the permanence heatmap visualization
+                NeoCortexUtils.DrawPermanenceBitmapWithText2(heatmapData, imageFileNamesWithoutExtension, permanenceHeatmapFilePath);
+
+                // Log the saved heatmap file path
+                Console.WriteLine($"✅ Permanence heatmap saved to: {permanenceHeatmapFilePath}");
+
             }
             // Generate the 1D heatmaps using the heatmapData list
             Generate1DHeatmaps(heatmapData, BinarizedencodedInputs, normalizedPermanence);

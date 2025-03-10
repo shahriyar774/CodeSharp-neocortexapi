@@ -62,7 +62,7 @@ namespace NeoCortexApiSample
                 { "Periodic", false},
                 { "Name", "scalar"},
                 { "ClipInput", false},
-                { "MaxVal", max}
+                { "MaxVal", max},
                 { "NewSetting", 100 },  // Added new configuration entry
                 { "AdditionalSetting", true }  // Added an additional configuration entry
             };

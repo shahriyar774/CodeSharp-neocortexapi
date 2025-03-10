@@ -9,6 +9,8 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
+using System.Numerics;
+
 
 namespace NeoCortex
 {
@@ -141,6 +143,7 @@ namespace NeoCortex
         }
 
 
+
         /// <summary>
         /// Drawas bitmaps from list of arrays.
         /// </summary>
@@ -262,7 +265,7 @@ namespace NeoCortex
                             // Fill rectangle instead of setting individual pixels for performance improvement
                             using (Brush cellBrush = new SolidBrush(cellColor))
                             {
-                                graphics.FillRectangle(cellBrush, x * cellWidth, y * cellHeight, cellWidth, cellHeight);
+                                graphics.FillRectangle(textBrush, x * gridWidth, y * gridHeight, gridWidth, gridHeight);
                             }
 
 
