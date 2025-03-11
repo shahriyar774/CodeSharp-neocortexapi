@@ -836,7 +836,7 @@ namespace NeoCortex
             // Save the bitmap to a file as PNG format
             bitmap.Save(filePath, ImageFormat.Png);
         }
-
+   
 
 
 
@@ -937,7 +937,52 @@ namespace NeoCortex
                 }
             }
         }
+        /// Saves a binarized image with text representation of binary values.
+        public static void SaveBinarizedImageWithText(int[] inputVector, string imageName)
+        {
+            const int width = 52, height = 52;
+            const int scaleFactor = 10; // Scale factor for better visibility
 
+            // Validate input vector size
+            if (inputVector.Length != width * height)
+            {
+                throw new ArgumentException($"Input vector must have exactly {width * height} elements.");
+            }
+
+            // Define output directory and file path
+            string folderPath = Path.Combine(Environment.CurrentDirectory, "BinaryImages");
+            Directory.CreateDirectory(folderPath);
+            string filePath = Path.Combine(folderPath, $"{imageName}.png");
+
+            // Create bitmap with scaled size
+            using (Bitmap bmp = new Bitmap(width * scaleFactor, height * scaleFactor))
+            using (Graphics g = Graphics.FromImage(bmp))
+            using (Font font = new Font("Arial", 10, FontStyle.Bold))
+            using (Brush brush = Brushes.Black)
+            {
+                g.Clear(Color.White); // Set background color
+
+                // Iterate through the binary vector and render text
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        int pixelIndex = y * width + x;
+                        string text = inputVector[pixelIndex].ToString();
+
+                        // Draw binary value as text
+                        float textX = x * scaleFactor;
+                        float textY = y * scaleFactor;
+                        g.DrawString(text, font, brush, textX, textY);
+                    }
+                }
+
+                // Save the final image
+                bmp.Save(filePath, ImageFormat.Png);
+            }
+
+            Console.WriteLine($"Binary image with text saved to {filePath}");
+        }
 
 
 
