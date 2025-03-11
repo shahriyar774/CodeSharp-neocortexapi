@@ -143,7 +143,7 @@ namespace NeoCortex
         }
 
         ///Implemented Permanence Bitmap with text values for visualization
-        public static void DrawPermanenceBitmapWithText(List<List<double>> heatmapData, List<string> inputNames, string filePath, int bmpWidth = 2048, int bmpHeight = 2048, int gridSize = 64)
+        public static void DrawPermanenceBitmapWithText(List<List<double>> heatmapData, List<string> inputNames, string filePath, int bmpWidth = 2048, int bmpHeight = 2048, int gridSize = 64, int enlargementFactor = 1)
         {
             // Ensure bitmap width and height are valid
             if (bmpWidth <= 0 || bmpHeight <= 0 || gridSize <= 0)
@@ -193,8 +193,9 @@ namespace NeoCortex
                             Color cellColor = Color.FromArgb(red, 0, blue);
 
                             // Compute 2D position
-                            int x = col % gridSize;
-                            int y = col / gridSize;
+                            int x = (col % gridSize) * gridWidth;  // Convert 1D index to 2D column position
+                            int y = (col / gridSize) * gridHeight; // Convert 1D index to 2D row position
+                            
 
                         
 
@@ -310,8 +311,8 @@ namespace NeoCortex
                 using (Font font = new Font("Arial", 6 * enlargementFactor, FontStyle.Bold))
                 using (Brush textBrush = Brushes.Black)
                 {
-                    int cellWidth = Math.Max(1, bmpWidth / gridSize);
-                    int cellHeight = Math.Max(1, bmpHeight / gridSize);
+                    int cellWidth = Math.Max(10, bmpWidth / gridSize);
+                    int cellHeight = Math.Max(10, bmpHeight / gridSize);
 
                     // Iterate over the heatmap data
                     for (int row = 0; row < heatmapData.Count; row++)
@@ -333,11 +334,16 @@ namespace NeoCortex
                             int blue = (int)(255 * (1 - permanence / maxPermanence));
                             Color cellColor = Color.FromArgb(red, 0, blue);
 
-                            // Compute 2D grid position
-                            int x = col % gridSize;
-                            int y = col / gridSize;
+                            // Ensure grid cell dimensions are properly defined
+                            int gridWidth = Math.Max(10, bmpWidth / gridSize);
+                            int gridHeight = Math.Max(10, bmpHeight / gridSize);
 
-                          
+                            // Compute 2D grid position
+                            int x = (col % gridSize) * gridWidth;  // Convert 1D index to 2D column position
+                            int y = (col / gridSize) * gridHeight; // Convert 1D index to 2D row position
+
+
+
 
                             // Fill the grid cell with the computed color
                             using (Brush cellBrush = new SolidBrush(cellColor))
@@ -380,8 +386,9 @@ namespace NeoCortex
                 graphics.Clear(Color.White); // Set background to white
 
                 // Calculate scale factor for fitting data into the enlarged bitmap
-                int cellWidth = bmpWidth / gridSize;
-                int cellHeight = bmpHeight / gridSize;
+                int cellWidth = Math.Max(10, bmpWidth / gridSize);
+                int cellHeight = Math.Max(10, bmpHeight / gridSize);
+
 
                 for (int idx = 0; idx < heatmapData.Count; idx++)
                 {
@@ -452,8 +459,9 @@ namespace NeoCortex
                 using (Brush textBrush = Brushes.Black)
                 {
                     // Calculate scale factors for grid cell size
-                    int cellWidth = bmpWidth / gridSize;
-                    int cellHeight = bmpHeight / gridSize;
+                    int cellWidth = Math.Max(10, bmpWidth / gridSize);
+                    int cellHeight = Math.Max(10, bmpHeight / gridSize);
+
 
                     for (int idx = 0; idx < heatmapData.Count; idx++)
                     {
@@ -513,8 +521,8 @@ namespace NeoCortex
         /// <param name="greenStart">Threshold for values below which pixels are green (default is 20).</param>
         /// <param name="enlargementFactor">Factor by which the image is enlarged for better visualization (default is 4).</param>
         public static void Draw1dHeatmap(List<double[]> heatmapData, List<int[]> normalizedData, List<int[]> encodedData, String filePath,
-        int bmpWidth = 1024,
-        int bmpHeight = 1024,
+        int bmpWidth = 4096,
+        int bmpHeight = 4096,
         decimal redStart = 200, decimal yellowMiddle = 127, decimal greenStart = 20,
         int enlargementFactor = 4)
         {
@@ -828,6 +836,111 @@ namespace NeoCortex
             // Save the bitmap to a file as PNG format
             bitmap.Save(filePath, ImageFormat.Png);
         }
+
+
+
+
+
+
+        /// Generates a combined heatmap with both a colored and a transparent version and saves it as an image.
+        public static void DrawCombinedHeatmaps2(List<List<double>> heatmapData, string filePath, int bmpWidth = 784, int gridSize = 52, int enlargementFactor = 1)
+        {
+            // Adjust image width based on the enlargement factor
+            bmpWidth *= enlargementFactor;
+            int titlePadding = 28; // Space for titles
+            int gridHeight = bmpWidth / gridSize;
+            int totalHeatmapHeight = gridHeight * gridSize;
+
+            using (Bitmap coloredBitmap = new Bitmap(bmpWidth, totalHeatmapHeight + titlePadding))
+            using (Bitmap transparentBitmap = new Bitmap(bmpWidth, totalHeatmapHeight + titlePadding))
+            using (Graphics coloredGraphics = Graphics.FromImage(coloredBitmap))
+            using (Graphics transparentGraphics = Graphics.FromImage(transparentBitmap))
+            using (Font titleFont = new Font("Arial", 20, FontStyle.Bold))
+            using (Font font = new Font("Arial", 10, FontStyle.Bold))
+            using (Brush textBrush = Brushes.Black)
+            using (Pen outlinePen = Pens.Black)
+            {
+                // Set backgrounds
+                coloredGraphics.Clear(Color.White);
+                transparentGraphics.Clear(Color.White);
+
+                // Draw titles
+                string titleColored = "Permanence Heatmap (Colored)";
+                string titleTransparent = "Permanence Heatmap (Transparent)";
+
+                coloredGraphics.DrawString(titleColored, titleFont, Brushes.Black, new PointF(bmpWidth / 3, 10));
+                transparentGraphics.DrawString(titleTransparent, titleFont, Brushes.Black, new PointF(bmpWidth / 3, 10));
+
+                int gridWidth = bmpWidth / gridSize;
+
+                // Process heatmap data and apply color mapping
+                for (int idx = 0; idx < heatmapData.Count; idx++)
+                {
+                    var permanenceValues = heatmapData[idx];
+                    if (permanenceValues.Count == 0) continue; // Skip empty datasets
+
+                    double maxPermanence = permanenceValues.Max();
+                    if (maxPermanence == 0) maxPermanence = 1; // Avoid division by zero
+
+                    for (int i = 0; i < permanenceValues.Count; i++)
+                    {
+                        double permanence = permanenceValues[i];
+
+                        // Generate heatmap colors (red for high values, blue for low)
+                        int red = (int)(255 * (permanence / maxPermanence));
+                        int blue = (int)(255 * (1 - permanence / maxPermanence));
+                        Color coloredPixelColor = Color.FromArgb(red, 0, blue);
+
+                        // Convert 1D index to 2D grid coordinates
+                        int x = (i % gridSize) * gridWidth;
+                        int y = (i / gridSize) * gridHeight + titlePadding;
+
+                        // Draw filled rectangles for better visualization
+                        using (SolidBrush brush = new SolidBrush(coloredPixelColor))
+                        {
+                            coloredGraphics.FillRectangle(brush, x, y, gridWidth, gridHeight);
+                        }
+                    }
+                }
+
+                // Render text values and grid rectangles
+                for (int idx = 0; idx < heatmapData.Count; idx++)
+                {
+                    var permanenceValues = heatmapData[idx];
+                    if (permanenceValues.Count == 0) continue;
+
+                    for (int i = 0; i < permanenceValues.Count; i++)
+                    {
+                        int x = (i % gridSize) * gridWidth;
+                        int y = (i / gridSize) * gridHeight + titlePadding;
+                        string valueText = $"{permanenceValues[i]:F1}";
+
+                        float textX = x + (gridWidth / 4);
+                        float textY = y + (gridHeight / 4);
+
+                        coloredGraphics.DrawString(valueText, font, textBrush, textX, textY);
+                        transparentGraphics.DrawRectangle(outlinePen, x, y, gridWidth, gridHeight);
+                        transparentGraphics.DrawString(valueText, font, textBrush, textX, textY);
+                    }
+                }
+
+                // Create a combined heatmap by stacking both versions
+                using (Bitmap combinedBitmap = new Bitmap(bmpWidth, (totalHeatmapHeight + titlePadding) * 2))
+                using (Graphics combinedGraphics = Graphics.FromImage(combinedBitmap))
+                {
+                    combinedGraphics.DrawImage(coloredBitmap, 0, 0);
+                    combinedGraphics.DrawImage(transparentBitmap, 0, totalHeatmapHeight + titlePadding);
+
+                    // Save final image
+                    combinedBitmap.Save(filePath, ImageFormat.Png);
+                    Console.WriteLine($"Combined heatmap saved to {filePath}");
+                }
+            }
+        }
+
+
+
+
 
         /// <summary>
         /// Determines the color based on the given similarity level.
