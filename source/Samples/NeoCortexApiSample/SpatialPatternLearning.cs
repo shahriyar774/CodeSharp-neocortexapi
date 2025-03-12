@@ -85,9 +85,11 @@ namespace NeoCortexApiSample
             var sp = RunExperiment(cfg, encoder, inputValues);
 
             RunRustructuringExperiment(sp, encoder, inputValues);
+            Console.WriteLine("Running Restructuring Experiment...");
+
         }
 
-       
+
 
         /// <summary>
         /// Implements the experiment.
@@ -168,7 +170,7 @@ namespace NeoCortexApiSample
             }
 
             // Learning process will take 1000 iterations (cycles)
-            int maxSPLearningCycles = 500;
+            int maxSPLearningCycles = 20;
 
             int numStableCycles = 0;
 
@@ -357,10 +359,47 @@ namespace NeoCortexApiSample
                 double[] array1D = values.ToArray();
 
                 // Call the Draw1DHeatmap function with the dynamically generated file path
-                NeoCortexUtils.Draw1dHeatmap(new List<double[]>() { array1D }, new List<int[]>() { normalizedPermanence[i - 1] }, new List<int[]>() { encodedInputs[i - 1] }, filePath, 200, 12, 9, 4, 0, 30);
+                //NeoCortexUtils.Draw1dHeatmap(new List<double[]>() { array1D }, new List<int[]>() { normalizedPermanence[i - 1] }, new List<int[]>() { encodedInputs[i - 1] }, filePath, 200, 12, 9, 4, 0, 30);
+
+                // Dynamically adjust bmpWidth and bmpHeight to avoid errors
+                int newBmpWidth = Math.Max(250, array1D.Length + 50);  // Ensure it's larger than input length
+                int newBmpHeight = Math.Max(15, normalizedPermanence[i - 1].Length + 5); // Ensure it's not too small
+
+                // Debugging info
+                Console.WriteLine($"[DEBUG] Adjusted bmpWidth: {newBmpWidth}, bmpHeight: {newBmpHeight}");
+
+                NeoCortexUtils.Draw1dHeatmap(
+                    new List<double[]>() { array1D },
+                    new List<int[]>() { normalizedPermanence[i - 1] },
+                    new List<int[]>() { encodedInputs[i - 1] },
+                    filePath,
+                    newBmpWidth, newBmpHeight, 9, 4, 0, 30);
 
                 //Debugging the Message
                 Debug.WriteLine("Heatmap generated and saved successfully.");
+
+                // **Generate 2D Heatmap**
+                string folderPath2D = Path.Combine(Environment.CurrentDirectory, "2DHeatMap");
+                if (!Directory.Exists(folderPath2D))
+                {
+                    Directory.CreateDirectory(folderPath2D);
+                }
+                string filePath2D = Path.Combine(folderPath2D, $"heatmap_2d_{i}.png");
+
+                // Convert 1D array into a 2D array
+                int size = (int)Math.Sqrt(array1D.Length);
+                double[,] heatmap2D = new double[size, size];
+                for (int y = 0; y < size; y++)
+                {
+                    for (int x = 0; x < size; x++)
+                    {
+                        heatmap2D[y, x] = array1D[y * size + x];
+                    }
+                }
+
+                NeoCortexUtils.Draw2dHeatmap(heatmap2D, filePath2D, 10, 200, 127, 20);
+                Console.WriteLine($"✅ [INFO] 2D Heatmap saved: {filePath2D}");
+
                 i++;
             }
         }

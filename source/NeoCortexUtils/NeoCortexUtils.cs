@@ -550,13 +550,17 @@ namespace NeoCortex
                 SizeF titleSize = g.MeasureString(title, titleFont);
                 float titleX = (targetWidth - titleSize.Width) / 2;
                 // Move the title further up (adjust the value as needed)
-                float titleY = 0;
+                float titleY = 5;
                 g.DrawString(title, titleFont, Brushes.Black, new PointF(titleX, titleY));
 
                 // Calculate scale factors for width and height based on the target dimensions
-                var scaleX = (double)targetWidth / bmpWidth;
+                //var scaleX = (double)targetWidth / bmpWidth;
                 // Exclude the space for the title and labels from scaleY
-                var scaleY = (double)(targetHeight - 40) / bmpHeight;
+                //var scaleY = (double)(targetHeight - 40) / bmpHeight;
+
+                double scaleX = targetWidth / (double)bmpWidth;
+                double scaleY = (targetHeight - 40) / (double)bmpHeight;
+
 
                 // Leave a gap between sections
                 float labelY = 30;
@@ -649,9 +653,41 @@ namespace NeoCortex
 
             // Save the combined image with heatmap and text row
             myBitmap.Save(filePath, ImageFormat.Png);
+            Console.WriteLine($"[INFO] Heatmap saved at {filePath}");
         }
 
 
+        public static void Draw2dHeatmap(double[,] heatmapData, string filePath,
+        int cellSize = 10, decimal redStart = 200, decimal yellowMiddle = 127, decimal greenStart = 20)
+        {
+            int height = heatmapData.GetLength(0);
+            int width = heatmapData.GetLength(1);
+
+            int imgWidth = width * cellSize;
+            int imgHeight = height * cellSize;
+
+            using (Bitmap bmp = new Bitmap(imgWidth, imgHeight))
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    for (int x = 0; x < width; x++)
+                    {
+                        // Get color for each cell
+                        Color color = GetColor(redStart, yellowMiddle, greenStart, (decimal)heatmapData[y, x]);
+
+                        using (Brush brush = new SolidBrush(color))
+                        {
+                            g.FillRectangle(brush, x * cellSize, y * cellSize, cellSize, cellSize);
+                        }
+                    }
+                }
+
+                // Save the heatmap image
+                bmp.Save(filePath, ImageFormat.Png);
+                Console.WriteLine($"✅ [INFO] 2D Heatmap saved: {filePath}");
+            }
+        }
 
 
         /// <summary>
