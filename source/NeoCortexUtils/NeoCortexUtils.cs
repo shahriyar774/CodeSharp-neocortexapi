@@ -657,8 +657,30 @@ namespace NeoCortex
         }
 
 
+        public static double[,] ConvertListTo2DArray(List<List<double>> heatmapData, int rows, int cols)
+        {
+            double[,] result = new double[rows, cols];
+
+            for (int i = 0; i < rows; i++)
+            {
+                for (int j = 0; j < cols; j++)
+                {
+                    if (i < heatmapData.Count && j < heatmapData[i].Count)
+                    {
+                        result[i, j] = heatmapData[i][j];
+                    }
+                    else
+                    {
+                        result[i, j] = 0.0; // Default value if out of bounds
+                    }
+                }
+            }
+            return result;
+        }
+
+
         public static void Draw2dHeatmap(double[,] heatmapData, string filePath,
-        int cellSize = 10, decimal redStart = 200, decimal yellowMiddle = 127, decimal greenStart = 20)
+        int cellSize = 20, decimal redStart = 200, decimal yellowMiddle = 127, decimal greenStart = 20)
         {
             int height = heatmapData.GetLength(0);
             int width = heatmapData.GetLength(1);
@@ -669,16 +691,29 @@ namespace NeoCortex
             using (Bitmap bmp = new Bitmap(imgWidth, imgHeight))
             using (Graphics g = Graphics.FromImage(bmp))
             {
+                g.Clear(Color.White); // Set background 
+
                 for (int y = 0; y < height; y++)
                 {
                     for (int x = 0; x < width; x++)
                     {
-                        // Get color for each cell
+                        // Get color based on permanence value
                         Color color = GetColor(redStart, yellowMiddle, greenStart, (decimal)heatmapData[y, x]);
 
                         using (Brush brush = new SolidBrush(color))
                         {
                             g.FillRectangle(brush, x * cellSize, y * cellSize, cellSize, cellSize);
+                        }
+
+                        // **Optional**: Overlay permanence value as text for clarity
+                        using (Font font = new Font("Arial", 8))
+                        using (Brush textBrush = new SolidBrush(Color.Black))
+                        {
+                            string valueText = heatmapData[y, x].ToString("F1");
+                            SizeF textSize = g.MeasureString(valueText, font);
+                            float textX = (x * cellSize) + (cellSize / 4);
+                            float textY = (y * cellSize) + (cellSize / 4);
+                            g.DrawString(valueText, font, textBrush, textX, textY);
                         }
                     }
                 }
@@ -688,6 +723,55 @@ namespace NeoCortex
                 Console.WriteLine($"✅ [INFO] 2D Heatmap saved: {filePath}");
             }
         }
+        public static void Draw2DSimilarityPlot(double[,] similarityMatrix, string filePath, int cellSize = 15)
+        {
+            int rows = similarityMatrix.GetLength(0);
+            int cols = similarityMatrix.GetLength(1);
+
+            int imgWidth = cols * cellSize;
+            int imgHeight = rows * cellSize;
+
+            using (Bitmap bmp = new Bitmap(imgWidth, imgHeight))
+            using (Graphics g = Graphics.FromImage(bmp))
+            {
+                g.Clear(Color.White);
+
+                for (int y = 0; y < rows; y++)
+                {
+                    for (int x = 0; x < cols; x++)
+                    {
+                        double similarity = similarityMatrix[y, x];
+
+                        // **Choose color intensity based on similarity level**
+                        int intensity = (int)(255 * similarity);
+                        Color color = Color.FromArgb(intensity, 0, 255 - intensity); // Gradient from red to blue
+
+                        using (Brush brush = new SolidBrush(color))
+                        {
+                            g.FillRectangle(brush, x * cellSize, y * cellSize, cellSize, cellSize);
+                        }
+
+                        // **Optional: Add similarity value text**
+                        using (Font font = new Font("Arial", 8))
+                        using (Brush textBrush = new SolidBrush(Color.Black))
+                        {
+                            string valueText = similarity.ToString("F2");
+                            SizeF textSize = g.MeasureString(valueText, font);
+                            float textX = (x * cellSize) + (cellSize / 4);
+                            float textY = (y * cellSize) + (cellSize / 4);
+                            g.DrawString(valueText, font, textBrush, textX, textY);
+                        }
+                    }
+                }
+
+                // Save the image
+                bmp.Save(filePath, ImageFormat.Png);
+                Console.WriteLine($"✅ [INFO] 2D Similarity Plot saved: {filePath}");
+            }
+        }
+
+
+
 
 
         /// <summary>

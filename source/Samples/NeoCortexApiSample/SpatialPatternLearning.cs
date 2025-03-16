@@ -24,11 +24,11 @@ namespace NeoCortexApiSample
 
             // Used as a boosting parameters
             // that ensure homeostatic plasticity effect.
-            double minOctOverlapCycles = 2.0;
-            double maxBoost = 7.0;
+            double minOctOverlapCycles = 1.0;
+            double maxBoost = 5.0;
 
             // We will use 200 bits to represent an input vector (pattern).
-            int inputBits = 250;
+            int inputBits = 200;
 
             // We will build a slice of the cortex with the given number of mini-columns
             int numColumns = 1024;
@@ -244,6 +244,7 @@ namespace NeoCortexApiSample
         // Define a method to run the restructuring experiment, which takes a spatial pooler, an encoder, and a list of input values as arguments.
         private void RunRustructuringExperiment(SpatialPooler sp, EncoderBase encoder, List<double> inputValues)
         {
+
             // Initialize a list to get heatmap data for all input values.
             List<List<double>> heatmapData = new List<List<double>>();
 
@@ -255,6 +256,18 @@ namespace NeoCortexApiSample
 
             // Initialize a list to measure the similarities.
             List<double[]> similarityList = new List<double[]>();
+
+            // Define the similarity matrix
+            // Define similarity matrix before using it
+            int inputHeight = 10;
+            int inputWidth = heatmapData.Count > 0 ? heatmapData[0].Count : 1;
+
+            double[,] similarityMatrix = new double[inputHeight, inputWidth];
+
+            string folderPath2D = Path.Combine(Environment.CurrentDirectory, "2DHeatMap");
+            Directory.CreateDirectory(folderPath2D);
+            string filePath2D = Path.Combine(folderPath2D, "heatmap_2d.png");
+
 
             // Loop through each input value in the list of input values.
             foreach (var input in inputValues)
@@ -306,7 +319,7 @@ namespace NeoCortexApiSample
                 Debug.WriteLine($"Input: {input} SDR: {Helpers.StringifyVector(actCols)}");
 
                 // Define a threshold value for normalizing permanences, this value provides best Reconstructed Input
-                var ThresholdValue = 8.3;
+                var ThresholdValue = 9;
 
                 // Normalize permanences (0 and 1) based on the threshold value and convert them to a list of integers.
                 List<int> normalizePermanenceList = Helpers.ThresholdingProbabilities(permanenceValuesList, ThresholdValue);
@@ -327,7 +340,15 @@ namespace NeoCortexApiSample
             // Generate 1D heatmaps using the heatmap data and the normalized permanences To plot Heatmap, Encoded Inputs and Normalize Image combined.
             Generate1DHeatmaps(heatmapData, normalizedPermanence, encodedInputs);
             // Plotting Graphs to Visualize Smililarities of Encoded Inputs and Reconstructed Inputs
-            DrawSimilarityPlots(similarityList);
+            DrawSimilarityPlots(similarityList, similarityMatrix);
+
+
+
+            // Generate 2D Heatmaps
+            double[,] heatmapArray2D = NeoCortexUtils.ConvertListTo2DArray(heatmapData, inputHeight, inputWidth);
+
+            NeoCortexUtils.Draw2dHeatmap(heatmapArray2D, filePath2D, 20);
+
         }
 
         /// <summary>
@@ -377,29 +398,6 @@ namespace NeoCortexApiSample
 
                 //Debugging the Message
                 Debug.WriteLine("Heatmap generated and saved successfully.");
-
-                // **Generate 2D Heatmap**
-                string folderPath2D = Path.Combine(Environment.CurrentDirectory, "2DHeatMap");
-                if (!Directory.Exists(folderPath2D))
-                {
-                    Directory.CreateDirectory(folderPath2D);
-                }
-                string filePath2D = Path.Combine(folderPath2D, $"heatmap_2d_{i}.png");
-
-                // Convert 1D array into a 2D array
-                int size = (int)Math.Sqrt(array1D.Length);
-                double[,] heatmap2D = new double[size, size];
-                for (int y = 0; y < size; y++)
-                {
-                    for (int x = 0; x < size; x++)
-                    {
-                        heatmap2D[y, x] = array1D[y * size + x];
-                    }
-                }
-
-                NeoCortexUtils.Draw2dHeatmap(heatmap2D, filePath2D, 10, 200, 127, 20);
-                Console.WriteLine($"✅ [INFO] 2D Heatmap saved: {filePath2D}");
-
                 i++;
             }
         }
@@ -414,7 +412,8 @@ namespace NeoCortexApiSample
         /// Debugging information, including the generated file path and successful plot generation confirmation, is output using Debug.WriteLine.
         /// </remarks>
 
-        public static void DrawSimilarityPlots(List<double[]> similaritiesList)
+        public static void DrawSimilarityPlots(List<double[]> similaritiesList, double[,] similarityMatrix)
+
         {
             // Combine all similarities from the list of arrays
             List<double> combinedSimilarities = new List<double>();
@@ -425,6 +424,7 @@ namespace NeoCortexApiSample
 
             // Define the folder path based on the current directory
             string folderPath = Path.Combine(Environment.CurrentDirectory, "SimilarityPlots");
+          
 
             // Create the folder if it doesn't exist
             if (!Directory.Exists(folderPath))
@@ -432,14 +432,21 @@ namespace NeoCortexApiSample
                 Directory.CreateDirectory(folderPath);
             }
 
+
             // Define the file name
-            string fileName = "combined_similarity_plot.png";
+            //string fileName = "combined_similarity_plot.png";
+            //string fileName = "combined_similarity_plot.png";
+            //string fileName2D = "similarity_2d.png";
+
 
             // Define the file path with the folder path and file name
-            string filePath = Path.Combine(folderPath, fileName);
+            string filePath = Path.Combine(folderPath, "combined_similarity_plot.png");
+          
 
             // Draw the combined similarity plot
             NeoCortexUtils.DrawCombinedSimilarityPlot(combinedSimilarities, filePath, 4500, 1100);
+
+            NeoCortexUtils.Draw2DSimilarityPlot(similarityMatrix, filePath, 15);
             //Debugging the Filepath
             Debug.WriteLine($"FilePath: {filePath}");
 
